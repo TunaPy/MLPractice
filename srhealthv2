@@ -1,0 +1,88 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Feb 26 20:15:38 2018
+
+@author: dhirp
+"""
+
+import pandas as pd
+import csv
+import glob
+import os
+
+path = r'C:\Users\dhirp\Documents\Project_One\SRHealthTool'
+allFiles = glob.glob(path +"/*.csv")
+
+frame = pd.DataFrame()
+list_ =[]
+
+for file_ in allFiles:
+    df = pd.read_csv(file_,index_col=None,header=0)
+    list_.append(df)
+frame = pd.concat(list_)
+frame = frame.reset_index(drop=True)
+
+dataset_tse_needed = frame[['SR#','Owner','Age in days','Subject']]
+dataset_tse_sorted = dataset_tse_needed.sort_values(by=['Age in days'])
+dataset_aged = dataset_tse_sorted.loc[dataset_tse_sorted['Age in days'] > 14.0]
+dataset_aged = dataset_aged.reset_index(drop=True)
+
+for index,row in dataset_aged.iterrows():
+    print (row['SR#'],row['Owner'],row['Subject'])
+    dataset_aged.loc[index,'Current Status']= input("Enter Current Status:")
+    dataset_aged.loc[index,'Opportunities']= input("Enter Opportunities:")
+
+## Compare Old and New Backlog Files to find New entries and Old entries.
+dataset_aged.to_csv('SRStatus_CurrentMarBL.csv')
+
+dataset_previous = pd.read_csv('SRStatus_OldMarBL.csv')
+dataset_current = pd.read_csv('SRStatus_CurrentMarBL.csv')
+
+## COMPARE THE DF TO FIND NEW ONGOGING CLOSED SRS.
+
+#x_newsr = [1,2,3,5,89,22,12,33,14,0]
+#y_oldsr = [44,0,22,1,33,54,89]
+newsrlist = dataset_current['SR#'].values.tolist()
+oldsrlist = dataset_previous['SR#'].values.tolist()
+                        
+## These are of TYPE SET
+ongoingsr = (set(newsrlist) & set(oldsrlist))
+difference = (set(newsrlist) ^ set(oldsrlist))
+new_assigned = set(ongoingsr) ^ set(newsrlist)
+moved_closed = set(ongoingsr) ^ set(oldsrlist)
+#new_assigned = set(difference) ^ set(x)
+#clo_movd = set(difference) ^ set(y)
+# These are of TYPE LIST.. Convert from SET to LIST
+
+#ongoingsr = list(set(ongoingsr))
+#new_assigned = list(set(new_assigned))
+#moved_closed = list(set(moved_closed))
+#print (ongoingsr)
+#print (difference)
+#print(new_assigned)
+#print (moved_closed)
+
+## From the above we need to attain the following.
+## Ongoing SR need Incremental update. Read the old file and get the
+#"Current Status" And "Opportunity". Prompt to Update the latest .. Update the same in the current csv file
+ongoingsr = pd.DataFrame(list(set(ongoingsr)))
+new_assigned = pd.DataFrame(list(set(new_assigned)))
+moved_closed = pd.DataFrame(list(set(moved_closed)))
+
+
+# Create a DF only of SR numbers
+# Iterate each element and check if its present. If Atleast one True then its present. If not it Unique
+#total_rows_prev = len(dataset_previous.axes[0])
+#total_rows_current = len(dataset_current.axes[0])
+#for i in range(total_rows_current):
+ #   for j in range(total_rows_prev):
+#        if dataset_current.iloc[i-1,1] == dataset_previous.iloc[j-1,1]:
+#            print (dataset_current.iloc[i-1,1])
+### ^^^ Version 2 Difference ###
+#        print (dataset_current.iloc[i-1,1] != dataset_previous.iloc[j-1,1])
+ #       print ('New SR:' )
+#            print (dataset_current.iloc[i-1,1])
+#    print (dataset_current.iloc[i-1,1])
+#    df1 = dataset_previous.at[i]
+#    df1 = dataset_previous.at[index,'SR#']
+#df1 = dataset_previous.at[0,'SR#']
