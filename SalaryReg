@@ -1,0 +1,53 @@
+"""
+Created on Sat Mar 17 20:00:26 2018
+
+@author: dhirp
+"""
+
+import pandas as pd
+import csv
+import glob
+import os
+
+df = pd.read_csv('Salary_Data.csv',index_col=None,header=0)
+
+X = df['YearsExperience'].tolist()
+y = df['Salary'].tolist()
+
+## Calcuate the Mean of a list of Numbers
+def mean(values):
+    return sum(values)/float(len(values))
+
+## Calculate varience between X and Y
+
+def variance(values,mean):
+    return sum([(X-mean)**2 for X in values])
+
+# Calculate covariance between x and y
+def covariance(x, mean_x, y, mean_y):
+	covar = 0.0
+	for i in range(len(x)):
+		covar += (x[i] - mean_x) * (y[i] - mean_y)
+	return covar
+
+mean_X,mean_y = mean(X),mean(y)
+var_X,var_y = variance(X,mean_X), variance(y,mean_y)
+
+print ('X Stats: mean=%.3f  variance=%.3f' %(mean_X,var_X))
+print ('y Stats: mean=%.3f  variance=%.3f' %(mean_y,var_y))
+
+covar = covariance(X,mean_X,y,mean_y)
+print('Covariance: %.3f' % covar)
+
+#B1 = covariance(x, y) / variance(x)
+#B0 = mean(y) - B1 * mean(x)
+def coefficients(dataset):
+#	x = [row[0] for row in dataset]
+#	y = [row[1] for row in dataset]
+	X_mean, y_mean = mean(X), mean(y)
+	b1 = covariance(X, X_mean, y, y_mean) / variance(X, X_mean)
+	b0 = y_mean - b1 * X_mean
+	return [b0, b1]
+
+b0, b1 = coefficients(df)
+print('Coefficients: B0=%.3f, B1=%.3f' % (b0, b1))
